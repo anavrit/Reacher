@@ -1,11 +1,10 @@
 from unityagents import UnityEnvironment
-from ddpg_agent import Agent
-
-import torch
-from collections import namedtuple, deque
 import numpy as np
-import pandas as pd
+import torch
+from collections import deque
+import random
 import matplotlib.pyplot as plt
+from ddpg_agent import Agent
 
 env = UnityEnvironment(file_name="Reacher.app")
 
@@ -20,28 +19,29 @@ action_size = brain.vector_action_space_size
 states = env_info.vector_observations
 state_size = states.shape[1]
 
-def train_agent(agent, num_episodes = 1000, max_iter = 500, print_every=100):
+agent = Agent(state_size=state_size, action_size=action_size, num_agents=num_agents, random_seed=0)
+
+def train_agent(num_episodes = 1000, print_every=100):
     scores_deque = deque(maxlen=print_every)
     scores = []
     agent_scores = []
-    best_mean_score = 30
     for episode in range(1, num_episodes+1):
         env_info = env.reset(train_mode=True)[brain_name]  # reset the environment
-        states = env_info.vector_observations              # get the current state
+        state = env_info.vector_observations               # get the current state
         agent.reset()
         score = 0.
         individual_scores = np.zeros(num_agents)                # initialize the score
-        for i in range(max_iter):
-            actions = agent.act(states)                    # select an action
-            env_info = env.step(actions)[brain_name]       # send the action to the environment
-            next_states = env_info.vector_observations     # get the next state
-            rewards = env_info.rewards                      # get the reward
-            dones = env_info.local_done                     # see if episode has finished
-            agent.step(states, actions, rewards, next_states, dones)
-            score += np.mean(rewards)
-            individual_scores += rewards                                # update the score
-            states = next_states                             # roll over the state to next time step
-            if np.any(dones):                                       # exit loop if episode finished
+        while True:
+            action = agent.act(state)                    # select an action
+            env_info = env.step(action)[brain_name]       # send the action to the environment
+            next_state = env_info.vector_observations     # get the next state
+            reward = env_info.rewards                      # get the reward
+            done = env_info.local_done                     # see if episode has finished
+            agent.step(state, action, reward, next_state, done)
+            score += np.mean(reward)
+            individual_scores += reward                                # update the score
+            state = next_state                             # roll over the state to next time step
+            if np.any(done):                                       # exit loop if episode finished
                 break
         scores_deque.append(score)
         scores.append(score)
@@ -49,22 +49,23 @@ def train_agent(agent, num_episodes = 1000, max_iter = 500, print_every=100):
         print('\rEpisode {}\tReward: {:.2f}\tAverage Reward: {:.2f}'.format(episode, score, np.mean(scores_deque)), end="")
         if episode % print_every == 0:
             print('\rEpisode {}\tReward: {:.2f}\tAverage Reward: {:.2f}'.format(episode, score, np.mean(scores_deque)))
-        if len(scores) >= 100:
-            mean_score = np.mean(scores[-100:])
-            if mean_score > best_mean_score:
-                torch.save(agent.actor_local.state_dict(), 'actor_chkpoint.pth')
-                torch.save(agent.critic_local.state_dict(), 'critic_chkpoint.pth')
-                best_mean_score = mean_score
-    return scores
+        if sum(np.array(scores_deque)>=30)>=100:
+            print('\n\nEnvironment Solved in {:d} episodes!\tAverage Reward: {:.2f}'.format(episode-100, np.mean(scores_deque)))
+            torch.save(agent.actor_local.state_dict(), 'Resources/checkpoint_actor.pth')
+            torch.save(agent.critic_local.state_dict(), 'Resources/checkpoint_critic.pth')
+            break
+    return scores, agent_scores
 
-agent = Agent(state_size=state_size, action_size=action_size, random_seed=2)
-scores = train_agent(agent)
+scores, agent_scores = train_agent()
 
-fig = plt.figure()
-ax = fig.add_subplot(111)
-plt.plot(np.arange(1, len(scores)+1), scores)
-plt.ylabel('Score')
-plt.xlabel('Episode #')
+fig, ax = plt.subplots(figsize=(16, 8))
+ax.plot(np.arange(1, len(scores)+1), scores, color='r', label='Mean Reward across 20 Agents')
+for i in range(20):
+    ax.plot(np.arange(1, len(scores)+1), [s[i] for s in agent_scores], alpha=0.1)
+plt.legend()
+ax.set_xlabel('Episode #', fontsize=14)
+ax.set_ylabel('Reward', fontsize=14)
+ax.set_title('Unity Reacher Environment using DDPG', fontsize=16)
 plt.show()
 
 """
