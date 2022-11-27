@@ -1,6 +1,6 @@
 [//]: # (Image References)
 
-[image1]: [image1]: https://user-images.githubusercontent.com/10624937/43851024-320ba930-9aff-11e8-8493-ee547c6af349.gif "Trained Agent"
+[image1]: https://user-images.githubusercontent.com/10624937/43851024-320ba930-9aff-11e8-8493-ee547c6af349.gif "Trained Agent"
 
 # Project #1: REPORT
 
@@ -38,17 +38,19 @@ The trained weights are available in `/Resources/checkpoint_critic.pth`.
 
 After testing hyperparameters for batch size and learning rate, the following set of hyperparameters were used for all architectures of deep neural networks, including the selected network:
 
-BUFFER_SIZE = int(1e5)  # replay buffer size <br>
-BATCH_SIZE = 128        # minibatch size <br>
-GAMMA = 0.99            # discount factor <br>
-TAU = 1e-3              # for soft update of target parameters <br>
-LR_ACTOR = 1e-4         # learning rate of the actor <br>
-LR_CRITIC = 1e-4        # learning rate of the critic <br>
-WEIGHT_DECAY = 0.       # L2 weight decay <br><br>
+BUFFER_SIZE = int(1e5)  <br>
+BATCH_SIZE = 128        <br>
+GAMMA = 0.99            <br>
+TAU = 1e-3              <br>
+LR_ACTOR = 1e-4         <br>
+LR_CRITIC = 1e-4        <br>
+WEIGHT_DECAY = 0.       <br>
 
 ### Plot of Rewards
 
 ![Reacher Environment Solved](/Resources/Reacher_Environment_Solved.jpg)
+
+The environment was solved in **22** episodes!	Average Reward: 36.62 <br>
 
 ### Ideas for Future Work
 

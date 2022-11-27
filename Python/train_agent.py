@@ -50,7 +50,7 @@ def train_agent(num_episodes = 1000, print_every=100):
         if episode % print_every == 0:
             print('\rEpisode {}\tReward: {:.2f}\tAverage Reward: {:.2f}'.format(episode, score, np.mean(scores_deque)))
         if sum(np.array(scores_deque)>=30)>=100:
-            print('\n\nEnvironment Solved in {:d} episodes!\tAverage Reward: {:.2f}'.format(episode, np.mean(scores_deque)))
+            print('\n\nEnvironment Solved in {:d} episodes!\tAverage Reward: {:.2f}'.format(episode-100, np.mean(scores_deque)))
             torch.save(agent.actor_local.state_dict(), '../Resources/checkpoint_actor.pth')
             torch.save(agent.critic_local.state_dict(), '../Resources/checkpoint_critic.pth')
             break
